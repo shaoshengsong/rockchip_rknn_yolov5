@@ -1,8 +1,8 @@
-/*!
-    @Description : https://github.com/shaoshengsong/
-    @Update      : shaoshengsong
 
-*/
+    # @Description : https://github.com/shaoshengsong/
+    # @Update      : shaoshengsong
+
+
 import os
 import numpy as np
 import cv2
