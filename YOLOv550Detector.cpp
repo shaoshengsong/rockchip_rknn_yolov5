@@ -363,9 +363,9 @@ int YOLOv550Detector::process(uint8_t *input, int *anchor, int grid_h, int grid_
                             maxClassProbs = prob;
                         }
                     }
-                    float a = sigmoid(deqnt_affine_to_f32(box_confidence, zp, scale));
-                    float b = sigmoid(deqnt_affine_to_f32(maxClassProbs, zp, scale));
-                    objProbs.push_back(a * b);
+                    float deqnt_tmp_a = sigmoid(deqnt_affine_to_f32(box_confidence, zp, scale));
+                    float deqnt_tmp_b = sigmoid(deqnt_affine_to_f32(maxClassProbs, zp, scale));
+                    objProbs.push_back(deqnt_tmp_a * deqnt_tmp_b);
                     classId.push_back(maxClassId);
                     validCount++;
                 }
