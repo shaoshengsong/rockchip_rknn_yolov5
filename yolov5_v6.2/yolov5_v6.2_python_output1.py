@@ -55,7 +55,7 @@ def yolov5_post_process(input_image, outputs):
                   class_id = np.argmax(classes_scores)
                   #  Continue if the class score is above threshold.
                   if (classes_scores[class_id] > SCORE_THRESHOLD):
-                        confidences.append(confidence)
+                        confidences.append(confidence * classes_scores[class_id])
                         class_ids.append(class_id)
                         cx, cy, w, h = row[0], row[1], row[2], row[3]
                         left = int((cx - w/2) * x_factor)
