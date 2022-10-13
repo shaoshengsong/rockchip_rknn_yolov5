@@ -11,10 +11,9 @@
 #include <sstream>
 #include <opencv2/opencv.hpp>
 
-//使用方法  test_image "/userdata/yolov5s_v6.2_output3_4.rknn"  80  640
-// test_image
-// 1 模型路径
-// 2 模型推理类别个数
+// test_image "/userdata/yolov5s_v6.2_output3_4.rknn"  80  640
+// 1 模型路径 /userdata/yolov5s_v6.2_output3_4.rknn
+// 2 模型推理类别个数 80
 // 3 模型输入大小 640
 
 int main(int argc, char *argv[])
@@ -31,7 +30,7 @@ int main(int argc, char *argv[])
     cfg.conf_thres = 0.25;
 
 
-    YOLOv550Detector detector;
+    YOLOv562Detector detector;
     detector.load_model(&cfg);
 
     // test image

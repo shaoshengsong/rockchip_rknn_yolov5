@@ -5,7 +5,7 @@
 */
 #include "YOLOv562Detector.h"
 
-YOLOv550Detector::~YOLOv550Detector()
+YOLOv562Detector::~YOLOv562Detector()
 {
     int ret = rknn_destroy(ctx);
     printf("destroy\n");
@@ -15,7 +15,7 @@ const int anchor0[6] = {10, 13, 16, 30, 33, 23};
 const int anchor1[6] = {30, 61, 62, 45, 59, 119};
 const int anchor2[6] = {116, 90, 156, 198, 373, 326};
 
-unsigned char *YOLOv550Detector::load_data(FILE *fp, size_t ofst, size_t sz)
+unsigned char *YOLOv562Detector::load_data(FILE *fp, size_t ofst, size_t sz)
 {
     unsigned char *data;
     int ret;
@@ -44,7 +44,7 @@ unsigned char *YOLOv550Detector::load_data(FILE *fp, size_t ofst, size_t sz)
     return data;
 }
 
-unsigned char *YOLOv550Detector::load_file(const char *filename, int *model_size)
+unsigned char *YOLOv562Detector::load_file(const char *filename, int *model_size)
 {
 
     FILE *fp;
@@ -68,7 +68,7 @@ unsigned char *YOLOv550Detector::load_file(const char *filename, int *model_size
     return data;
 }
 
-int YOLOv550Detector::load_model(ModelConfig *cfg)
+int YOLOv562Detector::load_model(ModelConfig *cfg)
 {
 
     nc_ = cfg->nc;
@@ -149,7 +149,7 @@ int YOLOv550Detector::load_model(ModelConfig *cfg)
     printf("model input height=%d, width=%d, channel=%d\n", height_, width_, channel_);
     return 0;
 }
-detect_result_group_t YOLOv550Detector::inference(cv::Mat &orig_img, int scale_size)
+detect_result_group_t YOLOv562Detector::inference(cv::Mat &orig_img, int scale_size)
 {
 
     int img_width = orig_img.cols;
@@ -205,7 +205,7 @@ detect_result_group_t YOLOv550Detector::inference(cv::Mat &orig_img, int scale_s
     return detect_result_group;
 }
 
-float YOLOv550Detector::CalculateOverlap(float xmin0, float ymin0, float xmax0, float ymax0, float xmin1, float ymin1, float xmax1, float ymax1)
+float YOLOv562Detector::CalculateOverlap(float xmin0, float ymin0, float xmax0, float ymax0, float xmin1, float ymin1, float xmax1, float ymax1)
 {
     float w = fmax(0.f, fmin(xmax0, xmax1) - fmax(xmin0, xmin1) + 1.0);
     float h = fmax(0.f, fmin(ymax0, ymax1) - fmax(ymin0, ymin1) + 1.0);
@@ -214,7 +214,7 @@ float YOLOv550Detector::CalculateOverlap(float xmin0, float ymin0, float xmax0, 
     return u <= 0.f ? 0.f : (i / u);
 }
 
-int YOLOv550Detector::nms(int validCount, std::vector<float> &outputLocations, std::vector<int> classIds, std::vector<int> &order, int filterId, float threshold)
+int YOLOv562Detector::nms(int validCount, std::vector<float> &outputLocations, std::vector<int> classIds, std::vector<int> &order, int filterId, float threshold)
 {
     for (int i = 0; i < validCount; ++i)
     {
@@ -251,7 +251,7 @@ int YOLOv550Detector::nms(int validCount, std::vector<float> &outputLocations, s
     return 0;
 }
 
-int YOLOv550Detector::quick_sort_indice_inverse(
+int YOLOv562Detector::quick_sort_indice_inverse(
     std::vector<float> &input,
     int left,
     int right,
@@ -288,35 +288,35 @@ int YOLOv550Detector::quick_sort_indice_inverse(
     return low;
 }
 
-float YOLOv550Detector::sigmoid(float x)
+float YOLOv562Detector::sigmoid(float x)
 {
     return 1.0 / (1.0 + expf(-x));
 }
 
-float YOLOv550Detector::unsigmoid(float y)
+float YOLOv562Detector::unsigmoid(float y)
 {
     return -1.0 * logf((1.0 / y) - 1.0);
 }
 
-int32_t YOLOv550Detector::__clip(float val, float min, float max)
+int32_t YOLOv562Detector::__clip(float val, float min, float max)
 {
     float f = val <= min ? min : (val >= max ? max : val);
     return f;
 }
 
-uint8_t YOLOv550Detector::qnt_f32_to_affine(float f32, uint32_t zp, float scale)
+uint8_t YOLOv562Detector::qnt_f32_to_affine(float f32, uint32_t zp, float scale)
 {
     float dst_val = (f32 / scale) + zp;
     uint8_t res = (uint8_t)__clip(dst_val, 0, 255);
     return res;
 }
 
-float YOLOv550Detector::deqnt_affine_to_f32(uint8_t qnt, uint32_t zp, float scale)
+float YOLOv562Detector::deqnt_affine_to_f32(uint8_t qnt, uint32_t zp, float scale)
 {
     return ((float)qnt - (float)zp) * scale;
 }
 
-int YOLOv550Detector::process(uint8_t *input, int *anchor, int grid_h, int grid_w, int height, int width, int stride,
+int YOLOv562Detector::process(uint8_t *input, int *anchor, int grid_h, int grid_w, int height, int width, int stride,
                               std::vector<float> &boxes, std::vector<float> &objProbs, std::vector<int> &classId,
                               float threshold, uint32_t zp, float scale)
 {
@@ -381,12 +381,12 @@ int YOLOv550Detector::process(uint8_t *input, int *anchor, int grid_h, int grid_
     return validCount;
 }
 
-int YOLOv550Detector::clamp(float val, int min, int max)
+int YOLOv562Detector::clamp(float val, int min, int max)
 {
     return val > min ? (val < max ? val : max) : min;
 }
 
-int YOLOv550Detector::post_process(uint8_t *input0, uint8_t *input1, uint8_t *input2, int model_in_h, int model_in_w,
+int YOLOv562Detector::post_process(uint8_t *input0, uint8_t *input1, uint8_t *input2, int model_in_h, int model_in_w,
                                    float conf_threshold, float nms_threshold, float scale_w, float scale_h,
                                    std::vector<uint32_t> &qnt_zps, std::vector<float> &qnt_scales,
                                    detect_result_group_t *group)
@@ -489,7 +489,7 @@ int YOLOv550Detector::post_process(uint8_t *input0, uint8_t *input1, uint8_t *in
     return 0;
 }
 
-void YOLOv550Detector::create_rknn_list(rknn_list **s)
+void YOLOv562Detector::create_rknn_list(rknn_list **s)
 {
     if (*s != NULL)
         return;
@@ -499,7 +499,7 @@ void YOLOv550Detector::create_rknn_list(rknn_list **s)
     printf("create rknn_list success\n");
 }
 
-void YOLOv550Detector::destory_rknn_list(rknn_list **s)
+void YOLOv562Detector::destory_rknn_list(rknn_list **s)
 {
     Node *t = NULL;
     if (*s == NULL)
@@ -514,7 +514,7 @@ void YOLOv550Detector::destory_rknn_list(rknn_list **s)
     *s = NULL;
 }
 
-void YOLOv550Detector::rknn_list_push(rknn_list *s, long timeval,
+void YOLOv562Detector::rknn_list_push(rknn_list *s, long timeval,
                                       detect_result_group_t detect_result_group)
 {
     Node *t = NULL;
@@ -534,7 +534,7 @@ void YOLOv550Detector::rknn_list_push(rknn_list *s, long timeval,
     s->size++;
 }
 
-void YOLOv550Detector::rknn_list_pop(rknn_list *s, long *timeval,
+void YOLOv562Detector::rknn_list_pop(rknn_list *s, long *timeval,
                                      detect_result_group_t *detect_result_group)
 {
     Node *t = NULL;
@@ -548,7 +548,7 @@ void YOLOv550Detector::rknn_list_pop(rknn_list *s, long *timeval,
     s->size--;
 }
 
-void YOLOv550Detector::rknn_list_drop(rknn_list *s)
+void YOLOv562Detector::rknn_list_drop(rknn_list *s)
 {
     Node *t = NULL;
     if (s == NULL || s->top == NULL)
@@ -559,7 +559,7 @@ void YOLOv550Detector::rknn_list_drop(rknn_list *s)
     s->size--;
 }
 
-int YOLOv550Detector::rknn_list_size(rknn_list *s)
+int YOLOv562Detector::rknn_list_size(rknn_list *s)
 {
     if (s == NULL)
         return -1;

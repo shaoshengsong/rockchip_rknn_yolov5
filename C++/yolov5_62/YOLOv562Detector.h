@@ -73,7 +73,7 @@ typedef struct my_stack
     Node *top;
 } rknn_list;
 
-class YOLOv550Detector
+class YOLOv562Detector
 {
 
 public:
@@ -86,10 +86,10 @@ public:
     int number_;
     rknn_context ctx;
     rknn_input_output_num io_num_;
-    YOLOv550Detector() = default;
-    ~YOLOv550Detector();
-    YOLOv550Detector(const YOLOv550Detector &rhs) = delete;
-    YOLOv550Detector &operator=(const YOLOv550Detector &rhs) = delete;
+    YOLOv562Detector() = default;
+    ~YOLOv562Detector();
+    YOLOv562Detector(const YOLOv562Detector &rhs) = delete;
+    YOLOv562Detector &operator=(const YOLOv562Detector &rhs) = delete;
 
     unsigned char *load_file(const char *filename, int *model_size);
     unsigned char *load_data(FILE *fp, size_t ofst, size_t sz);
