@@ -1,20 +1,3 @@
-
-
-## Rockchip 支持 YOLOv5 v6.2 从训练到C++部署的全链条开发
-
-包括
-
-**C++部署代码**  
-**pytorch模型转onnx代码**  
-**onnx模型转rknn代码**  
-更详细的说明  
-```
-https://flyfish.blog.csdn.net/article/details/127295673  
-```
-源码地址  
-```
-https://github.com/shaoshengsong/rockchip_rknn_yolov5
-```
 ## 模型导出环境  
 rknn-toolkit 1.7.1
 
