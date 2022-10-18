@@ -346,10 +346,7 @@ int YOLOv562Detector::process(uint8_t *input, int *anchor, int grid_h, int grid_
                     box_h = box_h * box_h * (float)anchor[a * 2 + 1];
                     box_x -= (box_w / 2.0);
                     box_y -= (box_h / 2.0);
-                    boxes.push_back(box_x);
-                    boxes.push_back(box_y);
-                    boxes.push_back(box_w);
-                    boxes.push_back(box_h);
+
 
                     uint8_t maxClassProbs = in_ptr[5 * grid_len];
                     int maxClassId = 0;
@@ -364,12 +361,16 @@ int YOLOv562Detector::process(uint8_t *input, int *anchor, int grid_h, int grid_
                     }
 
                     float deqnt_cls_conf = sigmoid(deqnt_affine_to_f32(maxClassProbs, zp, scale));
-
-                    if (deqnt_cls_conf > conf_thres_)
+                    float deqnt_box_conf = sigmoid(deqnt_affine_to_f32(box_confidence, zp, scale));
+                    float score =deqnt_box_conf * deqnt_cls_conf;
+                    if (score > conf_thres_)
                     {
-                        float deqnt_box_conf = sigmoid(deqnt_affine_to_f32(box_confidence, zp, scale));
-                        objProbs.push_back(deqnt_box_conf * deqnt_cls_conf);
-
+                        boxes.push_back(box_x);
+                        boxes.push_back(box_y);
+                        boxes.push_back(box_w);
+                        boxes.push_back(box_h);
+                        
+                        objProbs.push_back(score);
                         classId.push_back(maxClassId);
 
                         validCount++;
