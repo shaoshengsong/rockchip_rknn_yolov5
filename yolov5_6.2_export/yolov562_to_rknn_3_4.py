@@ -19,9 +19,12 @@ DATASET = 'd:\\dataset.txt'
 
 QUANTIZE_ON = True
 
-BOX_THRESH = 0.25
-NMS_THRESH = 0.45
+BOX_THRESH = 0.5
+NMS_THRESH = 0.6
 IMG_SIZE = (640, 640) # (width, height), such as (1280, 736)
+
+SHAPES =((0.0, 0.0), (0.0, 0.0)) #1 scale_coords
+SHAPE =(0,0)
 
 CLASSES = ("person", "bicycle", "car","motorbike ","aeroplane ","bus ","train","truck ","boat","traffic light",
            "fire hydrant","stop sign ","parking meter","bench","bird","cat","dog ","horse ","sheep","cow","elephant",
@@ -172,6 +175,7 @@ def yolov5_post_process(input_data):
         return None, None, None
 
     boxes = np.concatenate(nboxes)
+    scale_coords(IMG_SIZE, boxes, SHAPE, SHAPES) #2
     classes = np.concatenate(nclasses)
     scores = np.concatenate(nscores)
 
@@ -187,17 +191,17 @@ def draw(image, boxes, scores, classes):
         all_classes: all classes name.
     """
     for box, score, cl in zip(boxes, scores, classes):
-        top, left, right, bottom = box
+        left, top, right, bottom = box
         print('class: {}, score: {}'.format(CLASSES[cl], score))
-        print('box coordinate left,top,right,down: [{}, {}, {}, {}]'.format(top, left, right, bottom))
-        top = int(top)
+        print('box coordinate left,top,right,bottom: [{}, {}, {}, {}]'.format(left, top, right, bottom))
         left = int(left)
+        top = int(top)
         right = int(right)
         bottom = int(bottom)
 
-        cv2.rectangle(image, (top, left), (right, bottom), (255, 0, 0), 2)
+        cv2.rectangle(image, (left, top), (right, bottom), (255, 0, 0), 2)
         cv2.putText(image, '{0} {1:.2f}'.format(CLASSES[cl], score),
-                    (top, left - 6),
+                    (left, top - 6),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.6, (0, 0, 255), 2)
 
@@ -226,7 +230,28 @@ def letterbox(im, new_shape=(640, 640), color=(0, 0, 0)):
     im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
     return im, ratio, (dw, dh)
 
+#3
+def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
+    # Rescale coords (xyxy) from img1_shape to img0_shape
+    if ratio_pad is None:  # calculate from img0_shape
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
 
+    coords[:, [0, 2]] -= pad[0]  # x padding
+    coords[:, [1, 3]] -= pad[1]  # y padding
+    coords[:, :4] /= gain
+    clip_coords(coords, img0_shape)
+    return coords
+
+
+def clip_coords(boxes, shape):
+    # Clip bounding xyxy bounding boxes to image shape (height, width)
+    boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(0, shape[1])  # x1, x2
+    boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(0, shape[0])  # y1, y2
+    
 if __name__ == '__main__':
 
     # Create RKNN object
@@ -244,8 +269,9 @@ if __name__ == '__main__':
                 mean_values=[[0, 0, 0]],
                 std_values=[[255, 255, 255]],
                 optimization_level=3,
-                target_platform = 'rv1126',
+                #target_platform = 'rk1808',
                 # target_platform='rv1109',
+                target_platform = 'rv1126',
                 quantize_input_node= QUANTIZE_ON,
                 output_optimize=1,
                 force_builtin_perm=_force_builtin_perm)
@@ -253,6 +279,7 @@ if __name__ == '__main__':
 
     # Load ONNX model
     print('--> Loading model')
+    #ret = rknn.load_pytorch(model=PT_MODEL, input_size_list=[[3,IMG_SIZE[1], IMG_SIZE[0]]])
     ret = rknn.load_onnx(model=ONNX_MODEL, outputs=['output', '347', '358'])
     if ret != 0:
         print('Load yolov5 failed!')
@@ -277,17 +304,20 @@ if __name__ == '__main__':
 
     # init runtime environment
     print('--> Init runtime environment')
-    #ret = rknn.init_runtime()
+    #ret = rknn.init_runtime() 
     ret = rknn.init_runtime('rv1126', device_id='bab4d7a824f04867')
+    # ret = rknn.init_runtime('rv1109', device_id='1109')
+    # ret = rknn.init_runtime('rk1808', device_id='1808')
     if ret != 0:
         print('Init runtime environment failed')
         exit(ret)
     print('done')
 
     # Set inputs
-    img = cv2.imread(IMG_PATH)
-    img, ratio, (dw, dh) = letterbox(img, new_shape=(IMG_SIZE[1], IMG_SIZE[0]))
-    #cv2.imshow("letterbox after", img)
+    original_img = cv2.imread(IMG_PATH)#4
+    img, ratio, pad = letterbox(original_img, new_shape=(IMG_SIZE[1], IMG_SIZE[0]))
+    SHAPES=(ratio,pad)
+    SHAPE=(original_img.shape[0],original_img.shape[1])
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # Inference
@@ -308,12 +338,11 @@ if __name__ == '__main__':
     input_data.append(np.transpose(input1_data, (2, 3, 0, 1)))
     input_data.append(np.transpose(input2_data, (2, 3, 0, 1)))
 
+
     boxes, classes, scores = yolov5_post_process(input_data)
 
-    img_1 = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    if boxes is not None:
-        draw(img_1, boxes, scores, classes)
-    cv2.imshow("post process result", img_1)
-    cv2.waitKeyEx(0)
 
-    rknn.release()
+    if boxes is not None:
+        draw(original_img, boxes, scores, classes)
+    cv2.imshow("post process result", original_img)
+    cv2.waitKeyEx(0)
